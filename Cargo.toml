@@ -1,0 +1,21 @@
+[package]
+name = "serde-duration-ext"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+lazy_static = "1.4.0"
+serde = "1.0.189"
+regex = "1.10.2"
+
+chrono = { version = "0.4.31", optional = true }
+
+[dev-dependencies]
+serde_json = "1.0.107"
+
+[features]
+default = []
+chrono = ["dep:chrono"]
