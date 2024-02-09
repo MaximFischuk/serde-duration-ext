@@ -2,6 +2,8 @@
 name = "serde-duration-ext"
 version = "0.1.0"
 edition = "2021"
+description = "Serde support for std::time::Duration and chrono::Duration (chrono feature)"
+license-file = "LICENSE"
 
 [lib]
 crate-type = ["rlib"]
