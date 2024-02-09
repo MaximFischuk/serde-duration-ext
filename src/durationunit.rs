@@ -2,16 +2,15 @@ use std::str::FromStr;
 
 use lazy_static::lazy_static;
 use regex::Regex;
-use serde::{Deserializer, Deserialize};
+use serde::{Deserialize, Deserializer};
 
-use crate::TimeUnit;
 use crate::error::Error;
+use crate::TimeUnit;
 
 lazy_static! {
-    static ref DURATION_REGEX: Regex = Regex::new(
-        r"^(?P<value>\d+)(?P<unit>ns|us|ms|s|m|h|d|w){1}$"
-    )
-    .expect("Regex compilation error");
+    static ref DURATION_REGEX: Regex =
+        Regex::new(r"^(?P<value>\d+)(?P<unit>ns|us|ms|s|m|h|d|w){1}$")
+            .expect("Regex compilation error");
 }
 
 /// The number of seconds in a minute.
@@ -34,7 +33,9 @@ impl FromStr for DurationUnit {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if DURATION_REGEX.is_match(s) {
-            let caps = DURATION_REGEX.captures(s).unwrap();
+            let caps = DURATION_REGEX
+                .captures(s)
+                .ok_or_else(|| Error::StringDoesNotMatchRegex)?;
             let value = caps.name("value").unwrap().as_str().parse().unwrap();
             let time_unit = caps.name("unit").unwrap().as_str();
             let unit = time_unit.parse::<TimeUnit>()?;
@@ -79,7 +80,9 @@ impl From<DurationUnit> for std::time::Duration {
             TimeUnit::Microsecond => std::time::Duration::from_micros(duration_unit.value),
             TimeUnit::Millisecond => std::time::Duration::from_millis(duration_unit.value),
             TimeUnit::Second => std::time::Duration::from_secs(duration_unit.value),
-            TimeUnit::Minute => std::time::Duration::from_secs(duration_unit.value * SECS_PER_MINUTE),
+            TimeUnit::Minute => {
+                std::time::Duration::from_secs(duration_unit.value * SECS_PER_MINUTE)
+            }
             TimeUnit::Hour => std::time::Duration::from_secs(duration_unit.value * SECS_PER_HOUR),
             TimeUnit::Day => std::time::Duration::from_secs(duration_unit.value * SECS_PER_DAY),
             TimeUnit::Week => std::time::Duration::from_secs(duration_unit.value * SECS_PER_WEEK),
@@ -103,7 +106,7 @@ impl From<DurationUnit> for chrono::Duration {
     }
 }
 
-impl <'a> Deserialize<'a> for DurationUnit {
+impl<'a> Deserialize<'a> for DurationUnit {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'a>,
@@ -151,27 +154,45 @@ mod tests {
 
     #[test]
     fn test_duration_unit_into_duration() {
-        let duration_unit = DurationUnit { value: 10, unit: TimeUnit::Second };
+        let duration_unit = DurationUnit {
+            value: 10,
+            unit: TimeUnit::Second,
+        };
         let duration: Duration = duration_unit.into();
         assert_eq!(duration, Duration::from_secs(10));
 
-        let duration_unit = DurationUnit { value: 500, unit: TimeUnit::Millisecond };
+        let duration_unit = DurationUnit {
+            value: 500,
+            unit: TimeUnit::Millisecond,
+        };
         let duration: Duration = duration_unit.into();
         assert_eq!(duration, Duration::from_millis(500));
 
-        let duration_unit = DurationUnit { value: 1, unit: TimeUnit::Hour };
+        let duration_unit = DurationUnit {
+            value: 1,
+            unit: TimeUnit::Hour,
+        };
         let duration: Duration = duration_unit.into();
         assert_eq!(duration, Duration::from_secs(3600));
 
-        let duration_unit = DurationUnit { value: 100, unit: TimeUnit::Microsecond };
+        let duration_unit = DurationUnit {
+            value: 100,
+            unit: TimeUnit::Microsecond,
+        };
         let duration: Duration = duration_unit.into();
         assert_eq!(duration, Duration::from_micros(100));
 
-        let duration_unit = DurationUnit { value: 2, unit: TimeUnit::Day };
+        let duration_unit = DurationUnit {
+            value: 2,
+            unit: TimeUnit::Day,
+        };
         let duration: Duration = duration_unit.into();
         assert_eq!(duration, Duration::from_secs(172_800));
 
-        let duration_unit = DurationUnit { value: 1, unit: TimeUnit::Week };
+        let duration_unit = DurationUnit {
+            value: 1,
+            unit: TimeUnit::Week,
+        };
         let duration: Duration = duration_unit.into();
         assert_eq!(duration, Duration::from_secs(604_800));
     }
@@ -179,27 +200,45 @@ mod tests {
     #[cfg(feature = "chrono")]
     #[test]
     fn test_duration_unit_into_chrono_duration() {
-        let duration_unit = DurationUnit { value: 10, unit: TimeUnit::Second };
+        let duration_unit = DurationUnit {
+            value: 10,
+            unit: TimeUnit::Second,
+        };
         let duration: chrono::Duration = duration_unit.into();
         assert_eq!(duration, chrono::Duration::seconds(10));
 
-        let duration_unit = DurationUnit { value: 500, unit: TimeUnit::Millisecond };
+        let duration_unit = DurationUnit {
+            value: 500,
+            unit: TimeUnit::Millisecond,
+        };
         let duration: chrono::Duration = duration_unit.into();
         assert_eq!(duration, chrono::Duration::milliseconds(500));
 
-        let duration_unit = DurationUnit { value: 1, unit: TimeUnit::Hour };
+        let duration_unit = DurationUnit {
+            value: 1,
+            unit: TimeUnit::Hour,
+        };
         let duration: chrono::Duration = duration_unit.into();
         assert_eq!(duration, chrono::Duration::hours(1));
 
-        let duration_unit = DurationUnit { value: 100, unit: TimeUnit::Microsecond };
+        let duration_unit = DurationUnit {
+            value: 100,
+            unit: TimeUnit::Microsecond,
+        };
         let duration: chrono::Duration = duration_unit.into();
         assert_eq!(duration, chrono::Duration::microseconds(100));
 
-        let duration_unit = DurationUnit { value: 2, unit: TimeUnit::Day };
+        let duration_unit = DurationUnit {
+            value: 2,
+            unit: TimeUnit::Day,
+        };
         let duration: chrono::Duration = duration_unit.into();
         assert_eq!(duration, chrono::Duration::days(2));
 
-        let duration_unit = DurationUnit { value: 1, unit: TimeUnit::Week };
+        let duration_unit = DurationUnit {
+            value: 1,
+            unit: TimeUnit::Week,
+        };
         let duration: chrono::Duration = duration_unit.into();
         assert_eq!(duration, chrono::Duration::weeks(1));
     }

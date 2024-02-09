@@ -5,6 +5,9 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 pub enum Error {
     Syntax(String),
     UnitNotSupported(String),
+    NoUnitProvided,
+    NoValueProvided,
+    StringDoesNotMatchRegex,
 }
 
 impl StdError for Error {}
@@ -14,6 +17,9 @@ impl Display for Error {
         match self {
             Error::Syntax(err) => err.fmt(f),
             Error::UnitNotSupported(err) => err.fmt(f),
+            Error::NoUnitProvided => f.write_str("No unit provided"),
+            Error::NoValueProvided => f.write_str("No value provided"),
+            Error::StringDoesNotMatchRegex => f.write_str("String does not match regex"),
         }
     }
 }
